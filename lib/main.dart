@@ -1,13 +1,21 @@
 import 'dart:async';
+// import 'dart:html';
 import 'dart:io';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 Future<void> main() async {
   // Ensure that plugin services are initialized so that `availableCameras()`
   // can be called before `runApp()`
   WidgetsFlutterBinding.ensureInitialized();
+
+  //import Firebaase
+  Firebase.initializeApp();
 
   // Obtain a list of the available cameras on the device.
   final cameras = await availableCameras();
@@ -125,7 +133,12 @@ class TakePictureScreenState extends State<TakePictureScreen> {
 class DisplayPictureScreen extends StatelessWidget {
   final String imagePath;
 
-  const DisplayPictureScreen({super.key, required this.imagePath});
+  DisplayPictureScreen({super.key, required this.imagePath}); //const
+
+  // final DatabaseReference dbRef;
+  // dbRef = FirebaseDatabase.instance.ref("users/123");
+
+  DatabaseReference ref = FirebaseDatabase.instance.ref("users/123");
 
   @override
   Widget build(BuildContext context) {
@@ -140,6 +153,12 @@ class DisplayPictureScreen extends StatelessWidget {
             context,
             MaterialPageRoute(builder: (context) => board()),
           );
+
+          ref.set({
+            "name": "John",
+            "age": 18,
+            "address": {"line1": "100 Mountain View"}
+          });
         },
         child: const Icon(Icons.navigation),
       ),
@@ -157,6 +176,14 @@ class board extends StatefulWidget {
 }
 
 class _boardState extends State<board> {
+  // late DatabaseReference dbRef;
+
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   dbRef = FirebaseDatabase.instance.ref("users/123");
+  // }
+
   List numToAxis({pos}) {
     int row = 0;
     int col = 0;

@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "894708932660",
+    "project_id": "chessboardbackend",
+    "storage_bucket": "chessboardbackend.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:894708932660:android:b0a63ce0243118f1e6ea61",
+        "android_client_info": {
+          "package_name": "com.example.cam"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "894708932660-v7c14dg6nfmm32sgg20k0drufdqso6kt.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA5pU6n6gYdb7J5S3vM517LGqRBRjm1oWM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "894708932660-v7c14dg6nfmm32sgg20k0drufdqso6kt.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
