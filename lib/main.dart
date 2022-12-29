@@ -129,16 +129,22 @@ class TakePictureScreenState extends State<TakePictureScreen> {
   }
 }
 
-// A widget that displays the picture taken by the user.
-class DisplayPictureScreen extends StatelessWidget {
+class DisplayPictureScreen extends StatefulWidget {
   final String imagePath;
+  const DisplayPictureScreen({super.key, required this.imagePath});
 
-  DisplayPictureScreen({super.key, required this.imagePath}); //const
+  @override
+  State<DisplayPictureScreen> createState() => _DisplayPictureScreenState();
+}
 
-  // final DatabaseReference dbRef;
-  // dbRef = FirebaseDatabase.instance.ref("users/123");
+class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
+  late DatabaseReference refDb;
 
-  DatabaseReference ref = FirebaseDatabase.instance.ref("users/123");
+  @override
+  void initState() {
+    super.initState();
+    refDb = FirebaseDatabase.instance.ref("users/123");
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -146,25 +152,58 @@ class DisplayPictureScreen extends StatelessWidget {
       appBar: AppBar(title: const Text('Display the Picture')),
       // The image is stored as a file on the device. Use the `Image.file`
       // constructor with the given path to display the image.
-      body: Image.file(File(imagePath)),
+      body: Image.file(File(widget.imagePath)),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
+          refDb.set({"name": "John", "age": 18, "address": "dfg"});
+
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => board()),
           );
-
-          ref.set({
-            "name": "John",
-            "age": 18,
-            "address": {"line1": "100 Mountain View"}
-          });
         },
         child: const Icon(Icons.navigation),
       ),
     );
   }
 }
+///////////////////////////////////////////////////////////////////////////////
+// // A widget that displays the picture taken by the user.
+// class DisplayPictureScreen extends StatelessWidget {
+//   final String imagePath;
+
+//   DisplayPictureScreen({super.key, required this.imagePath}); //const
+
+//   // final DatabaseReference dbRef;
+//   // dbRef = FirebaseDatabase.instance.ref("users/123");
+
+//   DatabaseReference ref = FirebaseDatabase.instance.ref("users/123");
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(title: const Text('Display the Picture')),
+//       // The image is stored as a file on the device. Use the `Image.file`
+//       // constructor with the given path to display the image.
+//       body: Image.file(File(imagePath)),
+//       floatingActionButton: FloatingActionButton(
+//         onPressed: () {
+//           Navigator.push(
+//             context,
+//             MaterialPageRoute(builder: (context) => board()),
+//           );
+
+//           ref.set({
+//             "name": "John",
+//             "age": 18,
+//             "address": {"line1": "100 Mountain View"}
+//           });
+//         },
+//         child: const Icon(Icons.navigation),
+//       ),
+//     );
+//   }
+// }
 
 ///////////////////////////////////////////////////////////////////////////////
 
