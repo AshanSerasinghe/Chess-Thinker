@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 Future<void> main() async {
   // Ensure that plugin services are initialized so that `availableCameras()`
@@ -138,16 +139,17 @@ class DisplayPictureScreen extends StatefulWidget {
 }
 
 class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
-  late DatabaseReference refDb;
+  final _firebaseStorage = FirebaseStorage.instance;
 
   @override
   void initState() {
     super.initState();
-    refDb = FirebaseDatabase.instance.ref("users/123");
   }
 
   @override
   Widget build(BuildContext context) {
+    var file = File(widget.imagePath);
+    //final mountainsRef = refDb.child("mountains");
     return Scaffold(
       appBar: AppBar(title: const Text('Display the Picture')),
       // The image is stored as a file on the device. Use the `Image.file`
@@ -155,12 +157,14 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
       body: Image.file(File(widget.imagePath)),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          refDb.set({"name": "John", "age": 18, "address": "dfg"});
-
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => board()),
           );
+
+          //refDb.set({"name": "John", "age": 18, "address": "dfg"});
+          //var snapshot = mountainsRef.putFile(file).onComplete;
+          _firebaseStorage.ref().child('images/imageName').putFile(file);
         },
         child: const Icon(Icons.navigation),
       ),
