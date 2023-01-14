@@ -174,11 +174,13 @@ class DisplayPictureScreen extends StatefulWidget {
 
 class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
   final _firebaseStorage = FirebaseStorage.instance;
+  DatabaseReference ref = FirebaseDatabase.instance.ref("users");
 
   @override
   void initState() {
     super.initState();
     // ToDo:
+    // FirebaseDatabase realTimeDatabase = FirebaseDatabase.instance;
   }
 
   @override
@@ -200,16 +202,24 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
         alignment: Alignment.center,
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => board()),
-          );
-
+        onPressed: () async {
           //refDb.set({"name": "John", "age": 18, "address": "dfg"});
           //var snapshot = mountainsRef.putFile(file).onComplete;
           _firebaseStorage.ref().child('images/BoardImg').putFile(file);
-        },
+          print('###############################R');
+
+          final snapshot = await ref.child('users').get();
+          print('******************************');
+
+          // if (snapshot.exists) {
+          // ignore: use_build_context_synchronously
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const board()),
+          );
+        }
+        // }
+        ,
         child: const Icon(Icons.file_upload),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
