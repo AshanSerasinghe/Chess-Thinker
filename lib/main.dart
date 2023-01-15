@@ -1,4 +1,5 @@
 import 'dart:async';
+
 // import 'dart:html';
 import 'dart:io';
 
@@ -175,6 +176,8 @@ class DisplayPictureScreen extends StatefulWidget {
 class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
   final _firebaseStorage = FirebaseStorage.instance;
   DatabaseReference ref = FirebaseDatabase.instance.ref("users");
+  Map blackMap = {};
+  Map whiteMap = {};
 
   @override
   void initState() {
@@ -186,7 +189,7 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
   @override
   Widget build(BuildContext context) {
     var file = File(widget.imagePath);
-    //final mountainsRef = refDb.child("mountains");
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Display the Picture'),
@@ -203,19 +206,22 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          //refDb.set({"name": "John", "age": 18, "address": "dfg"});
-          //var snapshot = mountainsRef.putFile(file).onComplete;
           _firebaseStorage.ref().child('images/BoardImg').putFile(file);
-          print('###############################R');
 
-          final snapshot = await ref.child('users').get();
-          print('******************************');
+          DatabaseEvent event = await ref.once();
+          Map dataFromFB = event.snapshot.value as Map;
+
+          blackMap = dataFromFB['B'];
+          whiteMap = dataFromFB['W'];
 
           // if (snapshot.exists) {
           // ignore: use_build_context_synchronously
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const board()),
+            MaterialPageRoute(
+              builder: (context) =>
+                  board(whiteMap: whiteMap, blackMap: blackMap),
+            ),
           );
         }
         // }
@@ -267,7 +273,9 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
 ///////////////////////////////////////////////////////////////////////////////
 
 class board extends StatefulWidget {
-  const board({super.key});
+  Map whiteMap = {};
+  Map blackMap = {};
+  board({super.key, required this.whiteMap, required this.blackMap});
 
   @override
   State<board> createState() => _boardState();
@@ -376,8 +384,8 @@ class _boardState extends State<board> {
 
   @override
   Widget build(BuildContext context) {
-    var blackDict = {'a8': 'N', 'b8': 'K'};
-    var whiteDict = {'a1': 'N', 'b1': 'K'};
+    var blackDict = widget.blackMap; //{'a8': 'N', 'b8': 'K'};
+    var whiteDict = widget.whiteMap; //{'a1': 'N', 'b1': 'K'};
 
     return Scaffold(
       backgroundColor: Colors.black,
