@@ -219,8 +219,11 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) =>
-                  board(whiteMap: whiteMap, blackMap: blackMap),
+              builder: (context) => board(
+                whiteMap: whiteMap,
+                blackMap: blackMap,
+                fullMap: dataFromFB,
+              ),
             ),
           );
         }
@@ -232,50 +235,17 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
     );
   }
 }
-///////////////////////////////////////////////////////////////////////////////
-// // A widget that displays the picture taken by the user.
-// class DisplayPictureScreen extends StatelessWidget {
-//   final String imagePath;
-
-//   DisplayPictureScreen({super.key, required this.imagePath}); //const
-
-//   // final DatabaseReference dbRef;
-//   // dbRef = FirebaseDatabase.instance.ref("users/123");
-
-//   DatabaseReference ref = FirebaseDatabase.instance.ref("users/123");
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(title: const Text('Display the Picture')),
-//       // The image is stored as a file on the device. Use the `Image.file`
-//       // constructor with the given path to display the image.
-//       body: Image.file(File(imagePath)),
-//       floatingActionButton: FloatingActionButton(
-//         onPressed: () {
-//           Navigator.push(
-//             context,
-//             MaterialPageRoute(builder: (context) => board()),
-//           );
-
-//           ref.set({
-//             "name": "John",
-//             "age": 18,
-//             "address": {"line1": "100 Mountain View"}
-//           });
-//         },
-//         child: const Icon(Icons.navigation),
-//       ),
-//     );
-//   }
-// }
-
-///////////////////////////////////////////////////////////////////////////////
 
 class board extends StatefulWidget {
   Map whiteMap = {};
   Map blackMap = {};
-  board({super.key, required this.whiteMap, required this.blackMap});
+  Map fullMap = {};
+
+  board(
+      {super.key,
+      required this.whiteMap,
+      required this.blackMap,
+      required this.fullMap});
 
   @override
   State<board> createState() => _boardState();
@@ -382,22 +352,97 @@ class _boardState extends State<board> {
     return sqrList;
   }
 
+  double transformNumbers(input) {
+    double result = 0;
+    int upperBound = 1, lowerBound = 0;
+    num originalUper = 10, originalLower = -10;
+
+    result = (double.parse(input) - originalLower) *
+            (upperBound - lowerBound) /
+            (originalUper - originalLower) +
+        lowerBound;
+
+    return result;
+  }
+
   @override
   Widget build(BuildContext context) {
     var blackDict = widget.blackMap; //{'a8': 'N', 'b8': 'K'};
     var whiteDict = widget.whiteMap; //{'a1': 'N', 'b1': 'K'};
+    var fullMap = widget.fullMap;
+    Map line1 = fullMap['Line_1'];
+    Map line2 = fullMap['Line_2'];
+    Map line3 = fullMap['Line_3'];
+
+    var widthScreen = MediaQuery.of(context).size.width;
+    double scoreB = transformNumbers(line1['eval_score']);
+    String scoreBround = (double.parse(line1['eval_score'])).toStringAsFixed(3);
+    // String scoreWround = (scoreW*100).toStringAsFixed(2);
 
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
         title: const Text('Constructed board'),
       ),
-      body: Center(
-        child: GridView.count(
-          shrinkWrap: true,
-          crossAxisCount: 8,
-          children: eachSqqare(blackDict: blackDict, whiteDict: whiteDict),
-        ),
+      body: Column(
+        children: [
+          Text(scoreBround),
+          Container(
+            padding: const EdgeInsets.fromLTRB(0, 10, 0, 20),
+            child: LinearProgressIndicator(
+              backgroundColor: const Color.fromARGB(255, 211, 159, 117),
+              valueColor:
+                  const AlwaysStoppedAnimation(Color.fromARGB(255, 112, 57, 5)),
+              minHeight: 10,
+              value: scoreB,
+            ),
+          ),
+          SizedBox(
+            width: widthScreen,
+            height: widthScreen,
+            child: GridView.count(
+              shrinkWrap: true,
+              crossAxisCount: 8,
+              children: eachSqqare(blackDict: blackDict, whiteDict: whiteDict),
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.fromLTRB(0, 10, 0, 0),
+          ),
+          Expanded(
+              child: Table(
+            columnWidths: const {0: FlexColumnWidth(1), 1: FlexColumnWidth(6)},
+            defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+            children: [
+              TableRow(
+                decoration: BoxDecoration(
+                    color: const Color.fromARGB(255, 101, 114, 113)
+                        .withOpacity(0.3)),
+                children: [
+                  Text(line1['eval_score']),
+                  Text(line1['Moves']),
+                ],
+              ),
+              TableRow(
+                children: [
+                  Text(
+                    line2['eval_score'],
+                  ),
+                  Text(line2['Moves']),
+                ],
+              ),
+              TableRow(
+                decoration: BoxDecoration(
+                    color: const Color.fromARGB(255, 101, 114, 113)
+                        .withOpacity(0.3)),
+                children: [
+                  Text(line3['eval_score']),
+                  Text(line3['Moves']),
+                ],
+              )
+            ],
+          ))
+        ],
       ),
     );
   }
