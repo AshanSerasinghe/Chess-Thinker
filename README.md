@@ -1,13 +1,15 @@
 # Chess Thinker
 
 <p align="center">
-  <img src="https://github.com/AshanSerasinghe/chesboardCam/blob/main/images/AppLogo/icon3.png?raw=true" width="350" title="hover text">
+  <img src="https://github.com/AshanSerasinghe/chesboardCam/blob/main/images/AppLogo/icon3.png?raw=true" width="350" title="App Logo">
 </p>
 
 
 Introducing Chess Thinker, a revolutionary app that AI technology to the traditional chess board. Chess players now have the ability to easily evaluate chess positions and get the correct evaluation and best lines.With Chess Thinker, you can capture an image of the chess position and receive immediate feedback on the best lines.
 
-![Moves for White](https://github.com/AshanSerasinghe/chesboardCam/blob/main/readmeImages/ChessBoard1.jpg?raw=false)
+<p align="center">
+  <img src="https://github.com/AshanSerasinghe/chesboardCam/blob/main/readmeImages/ChessBoard1.jpg?raw=true" width="350" hight="400" title="White Moves">
+</p>
 
 As a chess player, accurately evaluating a position on a physical board can be a time-consuming and mentally demanding task. But with the help of the "Chess Thinker" App, this process is simplified and can be done in just a matter of seconds
 
