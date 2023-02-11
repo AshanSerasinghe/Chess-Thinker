@@ -1,4 +1,4 @@
-# cam
+# Chess Thinker
 
 A new Flutter project.
 

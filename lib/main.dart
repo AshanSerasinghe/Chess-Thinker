@@ -2,6 +2,7 @@ import 'dart:async';
 
 // import 'dart:html';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +11,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:image_picker/image_picker.dart';
 
 Future<void> main() async {
   // Ensure that plugin services are initialized so that `availableCameras()`
@@ -27,6 +29,7 @@ Future<void> main() async {
 
   runApp(
     MaterialApp(
+      debugShowCheckedModeBanner: false,
       theme: ThemeData.dark(),
       home: TakePictureScreen(
         // Pass the appropriate camera to the TakePictureScreen widget.
@@ -80,14 +83,38 @@ class TakePictureScreenState extends State<TakePictureScreen> {
   Widget build(BuildContext context) {
     //https://stackoverflow.com/questions/56735552/how-to-set-flutter-camerapreview-size-fullscreen
     final mediaSize = MediaQuery.of(context).size;
+    XFile? galleryFile;
+    ImagePicker picker = ImagePicker();
+
+    imageSelectorGallery() async {
+      try {
+        XFile? galleryFile =
+            await picker.pickImage(source: ImageSource.gallery);
+        if (galleryFile != null) {
+          await Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => DisplayPictureScreen(
+                // Pass the automatically generated path to
+                // the DisplayPictureScreen widget.
+                imagePath: galleryFile.path,
+              ),
+            ),
+          );
+        } else {
+          print("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+        }
+      } catch (e) {
+        print("ddddddddddddddd$e");
+      }
+    }
 
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('App Name'),
+          title: const Text('Capture the Board'),
           centerTitle: true,
           backgroundColor: const Color.fromARGB(255, 0, 0, 0),
-          leading: Image.asset('images/AppLogo/icon1.png'),
+          leading: Image.asset('images/AppLogo/icon3.png'),
         ),
         // You must wait until the controller is initialized before displaying the
         // camera preview. Use a FutureBuilder to display a loading spinner until the
@@ -113,38 +140,50 @@ class TakePictureScreenState extends State<TakePictureScreen> {
             }
           },
         ),
-        floatingActionButton: FloatingActionButton(
-          // Provide an onPressed callback.
-          onPressed: () async {
-            // Take the Picture in a try / catch block. If anything goes wrong,
-            // catch the error.
-            try {
-              // Ensure that the camera is initialized.
-              await _initializeControllerFuture;
+        floatingActionButton: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            FloatingActionButton(
+              heroTag: "btn1",
+              // Provide an onPressed callback.
+              onPressed: () async {
+                // Take the Picture in a try / catch block. If anything goes wrong,
+                // catch the error.
+                try {
+                  // Ensure that the camera is initialized.
+                  await _initializeControllerFuture;
 
-              // Attempt to take a picture and get the file `image`
-              // where it was saved.
-              final image = await _controller.takePicture();
+                  // Attempt to take a picture and get the file `image`
+                  // where it was saved.
+                  final image = await _controller.takePicture();
 
-              if (!mounted) return;
+                  if (!mounted) return;
 
-              // If the picture was taken, display it on a new screen.
-              await Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => DisplayPictureScreen(
-                    // Pass the automatically generated path to
-                    // the DisplayPictureScreen widget.
-                    imagePath: image.path,
-                  ),
-                ),
-              );
-            } catch (e) {
-              // If an error occurs, log the error to the console.
-              //print(e);
-            }
-          },
-          child: const Icon(Icons.camera_alt),
+                  // If the picture was taken, display it on a new screen.
+                  await Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => DisplayPictureScreen(
+                        // Pass the automatically generated path to
+                        // the DisplayPictureScreen widget.
+                        imagePath: image.path,
+                      ),
+                    ),
+                  );
+                } catch (e) {
+                  // If an error occurs, log the error to the console.
+                  //print(e);
+                }
+              },
+              child: const Icon(Icons.camera_alt),
+            ),
+            FloatingActionButton(
+              heroTag: "btn2",
+              onPressed: imageSelectorGallery,
+              child: const Icon(Icons.storage),
+            ),
+          ],
         ),
+
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       ),
     );
@@ -176,6 +215,7 @@ class DisplayPictureScreen extends StatefulWidget {
 class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
   final _firebaseStorage = FirebaseStorage.instance;
   DatabaseReference ref = FirebaseDatabase.instance.ref("users");
+  DatabaseReference refTrigger = FirebaseDatabase.instance.ref("trigger");
   Map blackMap = {};
   Map whiteMap = {};
 
@@ -189,10 +229,12 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
   @override
   Widget build(BuildContext context) {
     var file = File(widget.imagePath);
+    var rng = Random();
+    var randomTriggernum = rng.nextInt(100);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Display the Picture'),
+        title: const Text('Chess Thinker'),
         backgroundColor: Colors.black,
       ),
       // The image is stored as a file on the device. Use the `Image.file`
@@ -206,7 +248,10 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          _firebaseStorage.ref().child('images/BoardImg').putFile(file);
+          await _firebaseStorage.ref().child('images/BoardImg').putFile(file);
+
+          // To trigger the ML model in the Server
+          await refTrigger.set({"name": "Triggre_ML_model$randomTriggernum"});
 
           DatabaseEvent event = await ref.once();
           Map dataFromFB = event.snapshot.value as Map;
@@ -252,14 +297,6 @@ class board extends StatefulWidget {
 }
 
 class _boardState extends State<board> {
-  // late DatabaseReference dbRef;
-
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   dbRef = FirebaseDatabase.instance.ref("users/123");
-  // }
-
   List numToAxis({pos}) {
     int row = 0;
     int col = 0;
@@ -357,38 +394,56 @@ class _boardState extends State<board> {
     int upperBound = 1, lowerBound = 0;
     num originalUper = 10, originalLower = -10;
 
-    result = (double.parse(input) - originalLower) *
-            (upperBound - lowerBound) /
-            (originalUper - originalLower) +
-        lowerBound;
+    try {
+      result = (double.parse(input) - originalLower) *
+              (upperBound - lowerBound) /
+              (originalUper - originalLower) +
+          lowerBound;
+    } on Exception {
+      result = 10;
+    }
 
     return result;
   }
+
+  var fullMap = {};
+  Map line1 = {};
+  Map line2 = {};
+  Map line3 = {};
+
+  @override
+  void initState() {
+    super.initState();
+    fullMap = widget.fullMap;
+    line1 = fullMap['Line_1'];
+    line2 = fullMap['Line_2'];
+    line3 = fullMap['Line_3'];
+  }
+
+  var buttonColorOption = Colors.white;
+  var textColorOption = Colors.black;
+  String buttonText = 'White';
 
   @override
   Widget build(BuildContext context) {
     var blackDict = widget.blackMap; //{'a8': 'N', 'b8': 'K'};
     var whiteDict = widget.whiteMap; //{'a1': 'N', 'b1': 'K'};
-    var fullMap = widget.fullMap;
-    Map line1 = fullMap['Line_1'];
-    Map line2 = fullMap['Line_2'];
-    Map line3 = fullMap['Line_3'];
 
     var widthScreen = MediaQuery.of(context).size.width;
     double scoreB = transformNumbers(line1['eval_score']);
-    String scoreBround = (double.parse(line1['eval_score'])).toStringAsFixed(3);
-    // String scoreWround = (scoreW*100).toStringAsFixed(2);
+    // String scoreBround = (double.parse(line1['eval_score'])).toStringAsFixed(3);
+    String scoreBround = line1['eval_score'];
 
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        title: const Text('Constructed board'),
+        title: const Text('Chess Thinker'),
       ),
       body: Column(
         children: [
           Text(scoreBround),
           Container(
-            padding: const EdgeInsets.fromLTRB(0, 10, 0, 20),
+            padding: const EdgeInsets.fromLTRB(0, 5, 0, 10),
             child: LinearProgressIndicator(
               backgroundColor: const Color.fromARGB(255, 211, 159, 117),
               valueColor:
@@ -406,8 +461,36 @@ class _boardState extends State<board> {
               children: eachSqqare(blackDict: blackDict, whiteDict: whiteDict),
             ),
           ),
-          Container(
-            padding: const EdgeInsets.fromLTRB(0, 10, 0, 0),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              minimumSize: Size(widthScreen - 10, 5),
+              fixedSize: Size(widthScreen - 10, 20),
+              backgroundColor: buttonColorOption,
+              padding: EdgeInsets.zero,
+            ),
+            onPressed: () {
+              if (textColorOption == Colors.black) {
+                textColorOption = Colors.white;
+                buttonColorOption = Colors.black;
+                buttonText = 'Black';
+                line1 = fullMap['Line_4'];
+                line2 = fullMap['Line_5'];
+                line3 = fullMap['Line_6'];
+              } else {
+                textColorOption = Colors.black;
+                buttonColorOption = Colors.white;
+                buttonText = 'White';
+                line1 = fullMap['Line_1'];
+                line2 = fullMap['Line_2'];
+                line3 = fullMap['Line_3'];
+              }
+              setState(() {});
+            },
+            child: Text(
+              buttonText,
+              style: TextStyle(
+                  color: textColorOption, fontWeight: FontWeight.bold),
+            ),
           ),
           Expanded(
               child: Table(
